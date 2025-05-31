@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Delicii Urbane</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    html, body { height:100%; margin:0; display:flex; flex-direction:column; }
+    body { font-family:'Poppins',sans-serif; background:#fdfaf6; color:#333; }
+    header { background:#5e1c1c; padding:20px 0; border-bottom:2px solid #9e4b4b; position:sticky; top:0; z-index:1000; }
+    .container { width:90%; max-width:1100px; margin:0 auto; text-align:center; }
+    h1 { font-family:'Playfair Display',serif; color:#fdfaf6; margin:0; }
+    nav { margin-top:20px; }
+    nav a { margin:0 15px; color:#fdfaf6; text-decoration:none; font-weight:bold; cursor:pointer; }
+    nav a:hover { color:#f9c9aa; }
+    main { flex:1; padding:0; margin:0; }
+    footer { background:#5e1c1c; color:#fdfaf6; padding:20px; text-align:center; border-top:1px solid #9e4b4b; }
+
+    .btn-rezervare {
+      background:#5e1c1c; color:#fdfaf6; padding:12px; font-weight:bold;
+      border:none; border-radius:5px; cursor:pointer;
+      transition:background .3s, transform .2s;
+    }
+    .btn-rezervare:hover { background:#9e4b4b; transform:scale(1.02); }
+    .btn-rezervare:active { transform:scale(0.98); }
+    .full-width { width:100%; box-sizing:border-box; }
+
+    .carousel {
+      position: relative; width:100%; max-width:600px;
+      margin:20px auto; padding:20px;
+      background:#fff; border-radius:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      overflow:hidden; box-sizing:border-box;
+    }
+    .carousel .slide { display:none; text-align:center; font-size:1.1rem; line-height:1.4; }
+    .carousel .slide.active { display:block; }
+    .carousel .carousel-btn {
+      position:absolute; top:50%; transform:translateY(-50%);
+      font-size:2rem; color:#5e1c1c; background:none;
+      border:none; cursor:pointer; user-select:none; padding:0 10px;
+    }
+    .carousel .prev { left:10px; }
+    .carousel .next { right:10px; }
+    .carousel .carousel-btn:hover { color:#9e4b4b; }
+    .carousel blockquote { margin:0 0 10px; font-style:italic; }
+    .carousel cite { display:block; font-weight:bold; color:#333; }
+
+    #happy-hours { display:block; padding:10px 0; }
+    #hh-carousel .slide { display:none; padding:20px; text-align:center; }
+    #hh-carousel .slide.active { display:block; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <h1>Delicii Urbane</h1>
+      <nav>
+        <a data-pg="acasa">Acasă</a>
+        <a data-pg="meniu">Meniu</a>
+        <a data-pg="rezervari">Rezervări</a>
+        <a data-pg="contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="continut"></main>
+
+  <footer>
+    <p>&copy; 2025 Delicii Urbane | Str. Deliciului 9, București</p>
+  </footer>
+
+  <script>
+    function incarcaPagina(key) {
+      fetch(key + '.html')
+        .then(res => {
+          if (!res.ok) throw new Error('Nu s-a putut încărca: ' + key);
+          return res.text();
+        })
+        .then(html => {
+          document.getElementById('continut').innerHTML = html;
+          window.scrollTo(0,0);
+
+          if (key === 'acasa') {
+            initReviewsCarousel();
+            initHappyHours();
+          }
+          if (key === 'contact')   initContactForm();
+          if (key === 'rezervari') initRezervareForm();
+
+          history.replaceState({pagina:key}, '', '?pagina=' + key);
+        })
+        .catch(err => {
+          document.getElementById('continut').innerHTML =
+            `<p style="color:red">${err.message}</p>`;
+        });
+    }
+
+    document.querySelectorAll('nav a').forEach(a => {
+      a.addEventListener('click', () => {
+        incarcaPagina(a.dataset.pg);
+      });
+    });
+
+    window.addEventListener('popstate', e => {
+      const pg = (e.state && e.state.pagina)
+               || new URLSearchParams(location.search).get('pagina')
+               || 'acasa';
+      incarcaPagina(pg);
+    });
+
+    window.addEventListener('load', () => {
+      const pg = new URLSearchParams(location.search).get('pagina') || 'acasa';
+      incarcaPagina(pg);
+    });
+ 
+    function initContactForm(){
+      const form = document.getElementById('contact-form');
+      const msg  = document.getElementById('mesaj-contact');
+      if (!form) return;
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        fetch('trimitere_contact.php', { method:'POST', body:new FormData(form) })
+          .then(r => r.json())
+          .then(j => {
+            msg.textContent = j.status==='ok'
+              ? 'Mesaj trimis cu succes! Vă vom contacta în curând.'
+              : 'Eroare la trimitere.';
+            msg.style.color = j.status==='ok' ? 'green' : 'red';
+            if (j.status==='ok') form.reset();
+          })
+          .catch(()=> msg.textContent = 'Eroare de rețea.');
+      });
+    }
+
+    function initRezervareForm(){
+      const form = document.getElementById('formular-rezervare');
+      const msg  = document.getElementById('mesaj-rezervare');
+      if (!form) return;
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        fetch('rezervare.php', { method:'POST', body:new FormData(form) })
+          .then(r => r.text())
+          .then(txt => {
+            msg.textContent = txt.trim()==='ok'
+              ? 'Rezervare trimisă! Mulțumim și vă așteptăm!'
+              : 'Eroare la rezervare.';
+            msg.style.color = txt.trim()==='ok' ? 'green' : 'red';
+            if (txt.trim()==='ok') form.reset();
+          })
+          .catch(()=> msg.textContent = 'Eroare de rețea.');
+      });
+    }
+
+    function initReviewsCarousel(){
+      const slides = document.querySelectorAll('.carousel .slide');
+      if (!slides.length) return;
+      let idx = 0;
+      const show = i => {
+        slides[idx].classList.remove('active');
+        idx = (i + slides.length) % slides.length;
+        slides[idx].classList.add('active');
+      };
+      document.querySelector('.carousel .prev')
+        .addEventListener('click', () => show(idx - 1));
+      document.querySelector('.carousel .next')
+        .addEventListener('click', () => show(idx + 1));
+      setInterval(() => show(idx + 1), 5000);
+    }
+  </script>
+  <script src="scrolltop.js"></script>
+  <script src="happy_hours.js"></script>
+</body>
+</html>
