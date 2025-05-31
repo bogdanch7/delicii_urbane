@@ -46,6 +46,7 @@ Acest proiect reprezintă un site web complet funcțional pentru un restaurant f
 
 ## Capturi
 ![image](https://github.com/user-attachments/assets/97d2e5eb-f9d7-4c9e-ad92-572bd1217b94)
+![image](https://github.com/user-attachments/assets/4491b4a7-3753-4ce2-a9d8-bc939a80920e)
 ![image](https://github.com/user-attachments/assets/d40b35f0-8420-481f-95aa-55fcdb75e55e)
 ![image](https://github.com/user-attachments/assets/6a81b718-56b1-4fea-a92f-b0b444adad68)
 ![image](https://github.com/user-attachments/assets/ed72b711-63f0-4af8-ab06-00c9d572512f)
